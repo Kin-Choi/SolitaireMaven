@@ -155,6 +155,7 @@ public class GameModel {
         }
         return cards;
     }
+
     public boolean autoMove(Location source) {
         for (Location suitStack : SuitStack.values()) {
             if (move(source, suitStack))
@@ -231,10 +232,12 @@ public class GameModel {
         }
 
         if (source instanceof SuitStack && destination instanceof Workingstack) {
-            workingStackManager.add(suitStackManager.draw((SuitStack) source), (Workingstack) destination);
-            ScoreView.score.setScore(ScoreView.score.getScore() - 15);
-            notifyListener();
-            return true;
+            if (canAdd(suitStackManager.viewSuitStack((SuitStack)source), destination)) {
+                workingStackManager.add(suitStackManager.draw((SuitStack) source), (Workingstack) destination);
+                ScoreView.score.setScore(ScoreView.score.getScore() - 15);
+                notifyListener();
+                return true;
+            }
         }
         return false;
     }

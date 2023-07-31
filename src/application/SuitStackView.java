@@ -1,5 +1,6 @@
 package application;
 
+import javafx.scene.input.*;
 import javafx.scene.layout.StackPane;
 import model.GameModel;
 import model.GameModelListener;
@@ -9,9 +10,6 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
 
 public class SuitStackView extends StackPane implements GameModelListener {
 
@@ -80,6 +78,19 @@ public class SuitStackView extends StackPane implements GameModelListener {
             ImageView image = (ImageView) getChildren().get(0);
             image.setImage(CardImage.getImage(topCard));
             dragHandler.setCard(topCard);
+            image.setOnMouseClicked(createDoubleClickHandler());
+
         }
     }
+
+    private EventHandler<MouseEvent> createDoubleClickHandler() {
+        return mouseEvent -> {
+            if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
+                if(mouseEvent.getClickCount() == 2){
+                    GameModel.getInstance().autoMove(index);
+                }
+            }
+        };
+    }
+
 }
