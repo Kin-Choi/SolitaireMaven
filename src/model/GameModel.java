@@ -30,7 +30,7 @@ public class GameModel {
     private boolean requireReset = false;
 
 
-      // Enum representing the different locations in the game model
+    // Enum representing the different locations in the game model
     public enum CardDeck implements Location {
         DECK, DISCARD
     }
@@ -91,9 +91,8 @@ public class GameModel {
             waste.add(c);
             notifyListener();
             return true;
-        }
-        else deck.transferAll(waste);
-        ScoreView.score.setScore(ScoreView.score.getScore()-50);
+        } else deck.transferAll(waste);
+        ScoreView.score.setScore(ScoreView.score.getScore() - 50);
         notifyListener();
         return true;
     }
@@ -156,8 +155,28 @@ public class GameModel {
         }
         return cards;
     }
-
+    public boolean autoMove(Location source) {
+        for (Location suitStack : SuitStack.values()) {
+            if (move(source, suitStack))
+                return true;
+        }
+        for (Location workingStack : Workingstack.values()) {
+            if (source != workingStack) {
+                if (move(source, workingStack)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+//    public boolean autoMove(Card card, Location source) {
+//        for (Location workingStack : Workingstack.values()) {
+//            getInstance().getCardMove(card,workingStack);
+//        }
+//        return false;
+//    }
     // Move a card from one location to another
+
     public boolean move(Location source, Location destination, Card card) {
         if (canDraw(source) && canAdd(card, destination)) {
             workingStackManager.addMultiple(workingStackManager.drawMultiple(card, (Workingstack) source),
@@ -168,6 +187,7 @@ public class GameModel {
         return false;
     }
 
+
     // Move a card from one location to another without specifying the card
     public boolean move(Location source, Location destination) {
         if (source instanceof Workingstack && destination instanceof SuitStack) {
@@ -176,7 +196,7 @@ public class GameModel {
                 suitStackManager.add(card);
                 //add 10 scores
                 int score = ScoreView.score.getScore();
-                ScoreView.score.setScore(ScoreView.score.getScore()+10);
+                ScoreView.score.setScore(ScoreView.score.getScore() + 10);
                 notifyListener();
                 return true;
             }
@@ -185,30 +205,34 @@ public class GameModel {
         if (source.equals(CardDeck.DISCARD) && destination instanceof SuitStack) {
             if (canDraw(source) && canAdd(waste.peek(), destination)) {
                 suitStackManager.add(waste.pop());
-                ScoreView.score.setScore(ScoreView.score.getScore()+10);
+                ScoreView.score.setScore(ScoreView.score.getScore() + 10);
                 notifyListener();
                 return true;
             }
         }
 
         if (source.equals(CardDeck.DISCARD) && destination instanceof Workingstack) {
-            workingStackManager.add(waste.pop(), (Workingstack) destination);
-            ScoreView.score.setScore(ScoreView.score.getScore()+5);
-            notifyListener();
-            return true;
+            if (canDraw(source) && canAdd(waste.peek(), destination)) {
+                workingStackManager.add(waste.pop(), (Workingstack) destination);
+                ScoreView.score.setScore(ScoreView.score.getScore() + 5);
+                notifyListener();
+                return true;
+            }
         }
 
         if (source instanceof Workingstack && destination instanceof Workingstack) {
-            Card card = workingStackManager.draw((Workingstack) source);
-            if (card != null) {
+            Card card = workingStackManager.getCards((Workingstack) source).peek();
+            if (card != null && canDraw(source) && canAdd(card, destination)) {
+                card = workingStackManager.draw((Workingstack) source);
                 workingStackManager.add(card, (Workingstack) destination);
                 notifyListener();
+                return true;
             }
         }
 
         if (source instanceof SuitStack && destination instanceof Workingstack) {
-            workingStackManager.add(suitStackManager.draw((SuitStack)source), (Workingstack) destination);
-            ScoreView.score.setScore(ScoreView.score.getScore()-15);
+            workingStackManager.add(suitStackManager.draw((SuitStack) source), (Workingstack) destination);
+            ScoreView.score.setScore(ScoreView.score.getScore() - 15);
             notifyListener();
             return true;
         }
@@ -224,8 +248,8 @@ public class GameModel {
 
         for (Workingstack ws : Workingstack.values()) {
             if (
-                    !workingStackManager.getWorkingStack(ws).isEmpty()&&
-                    workingStackManager.getCards(ws).peek().equals(top)
+                    !workingStackManager.getWorkingStack(ws).isEmpty() &&
+                            workingStackManager.getCards(ws).peek().equals(top)
             ) {
                 return new OneCardMove(ws, destination, getInstance());
             }
@@ -236,11 +260,11 @@ public class GameModel {
             }
         }
 
-        for (SuitStack ss : SuitStack.values()){
+        for (SuitStack ss : SuitStack.values()) {
             Card card = suitStackManager.viewSuitStack(ss);
-            if (!(card==null) &&
-            card.equals(top)){
-                return new OneCardMove(ss, destination,getInstance());
+            if (!(card == null) &&
+                    card.equals(top)) {
+                return new OneCardMove(ss, destination, getInstance());
             }
         }
         return null;
@@ -270,7 +294,7 @@ public class GameModel {
 
     public void markDiscovered(Card card) {
         discoveredCardManager.markDiscovered(card);
-        ScoreView.score.setScore(ScoreView.score.getScore()+5);
+        ScoreView.score.setScore(ScoreView.score.getScore() + 5);
     }
 
     public void setHasWon(boolean hasWon) {
@@ -281,9 +305,13 @@ public class GameModel {
         return hasWon;
     }
 
-    public void setLose(boolean lose) {this.lose = lose;}
+    public void setLose(boolean lose) {
+        this.lose = lose;
+    }
 
-    public boolean lose() {return lose;}
+    public boolean lose() {
+        return lose;
+    }
 
     public boolean isRequireReset() {
         return requireReset;

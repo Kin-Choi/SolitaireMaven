@@ -65,9 +65,12 @@ public class WorkingStackView extends StackPane implements GameModelListener {
             // Set event handlers for drag detection, drag over, and drag dropped for each card
             setOnDragOver(createDragOverHandler());
             setOnDragDropped(createDragDroppedHandler());
+
             if (dragAllowed) {
             	image.setOnDragDetected(createDragDetectedHandler(image, card, stack, i ));
             	image.setCursor(Cursor.HAND);
+                image.setOnMouseClicked(createDoubleClickHandler(card));
+
             }          
         }
     }
@@ -134,6 +137,20 @@ public class WorkingStackView extends StackPane implements GameModelListener {
             }
         };
     }
+
+    private EventHandler<MouseEvent> createDoubleClickHandler(Card card) {
+        return (MouseEvent mouseEvent) -> {
+            if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
+                if(mouseEvent.getClickCount() == 2){
+//                    GameModel.getInstance().autoMove(card, index);
+                                   GameModel.getInstance().autoMove( index);
+
+
+                }
+            }
+        };
+    }
+
 
     @Override
     public void gameStateChanged() {

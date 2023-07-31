@@ -1,5 +1,8 @@
 package application;
 
+import javafx.event.EventHandler;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import model.GameModel;
 import model.GameModelListener;
@@ -48,7 +51,19 @@ public class WasteView extends HBox implements GameModelListener {
             ImageView image = (ImageView) this.getChildren().get(0);
             image.setImage(CardImage.getImage(topCard));
             dragHandler.setCard(topCard);
+            image.setOnMouseClicked(createDoubleClickHandler());
         }
+    }
+
+
+    private EventHandler<MouseEvent> createDoubleClickHandler() {
+        return mouseEvent -> {
+            if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
+                if(mouseEvent.getClickCount() == 2){
+                    GameModel.getInstance().autoMove(CardDeck.DISCARD);
+                }
+            }
+        };
     }
 
 }
