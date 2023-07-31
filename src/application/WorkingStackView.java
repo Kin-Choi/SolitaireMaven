@@ -142,8 +142,8 @@ public class WorkingStackView extends StackPane implements GameModelListener {
         return (MouseEvent mouseEvent) -> {
             if(mouseEvent.getButton().equals(MouseButton.PRIMARY)){
                 if(mouseEvent.getClickCount() == 2){
-//                    GameModel.getInstance().autoMove(card, index);
-                                   GameModel.getInstance().autoMove( index);
+                    GameModel.getInstance().autoMove(card, index);
+//                                   GameModel.getInstance().autoMove( index);
 
 
                 }

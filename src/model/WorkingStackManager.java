@@ -41,7 +41,10 @@ public class WorkingStackManager {
         assert card != null;
         if (workingStacks[index.ordinal()].isEmpty() && card.getRank() == Rank.KING) {
             return true;
-        } else {
+        } else if (workingStacks[index.ordinal()].isEmpty()) {
+            return false;
+        }
+        else{
             // Check if the card's suit and rank meet the conditions for adding to the working stack
             if ((card.getSuit().ordinal() + workingStacks[index.ordinal()].peek().getSuit().ordinal()) % 2 != 0) {
                 if (card.getRank().ordinal() == workingStacks[index.ordinal()].peek().getRank().ordinal() - 1) {
@@ -88,8 +91,7 @@ public class WorkingStackManager {
     public Stack<Card> drawMultiple(Card card, Workingstack index) {
         assert canDraw(index);
         Stack<Card> stack = new Stack<>();
-        while (!workingStacks[index.ordinal()].isEmpty() && card != workingStacks[index.ordinal()].peek())
-        {
+        while (!workingStacks[index.ordinal()].isEmpty() && card != workingStacks[index.ordinal()].peek()) {
             stack.push(workingStacks[index.ordinal()].draw());
         }
         if (!workingStacks[index.ordinal()].isEmpty()) {

@@ -170,12 +170,22 @@ public class GameModel {
         }
         return false;
     }
-//    public boolean autoMove(Card card, Location source) {
-//        for (Location workingStack : Workingstack.values()) {
-//            getInstance().getCardMove(card,workingStack);
-//        }
-//        return false;
-//    }
+
+    public boolean autoMove(Card card, Location source) {
+        for (Location suitStack : SuitStack.values()) {
+            if (move(source, suitStack))
+                return true;
+        }
+        for (Location workingStack : Workingstack.values()) {
+            if (source != workingStack && canAdd(card,workingStack)) {
+                if(getInstance().getCardMove(card, workingStack).move())
+                return true;
+
+            }
+        }
+
+        return false;
+    }
     // Move a card from one location to another
 
     public boolean move(Location source, Location destination, Card card) {
@@ -232,7 +242,7 @@ public class GameModel {
         }
 
         if (source instanceof SuitStack && destination instanceof Workingstack) {
-            if (canAdd(suitStackManager.viewSuitStack((SuitStack)source), destination)) {
+            if (canAdd(suitStackManager.viewSuitStack((SuitStack) source), destination)) {
                 workingStackManager.add(suitStackManager.draw((SuitStack) source), (Workingstack) destination);
                 ScoreView.score.setScore(ScoreView.score.getScore() - 15);
                 notifyListener();
