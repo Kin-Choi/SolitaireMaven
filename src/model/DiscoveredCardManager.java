@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 public class DiscoveredCardManager {
 
-    private ArrayList<Card> undiscoveredCard = new ArrayList<>();
+    private final ArrayList<Card> undiscoveredCard = new ArrayList<>();
 
 
     public boolean checkUndiscovered(Card card) {
@@ -18,12 +18,17 @@ public class DiscoveredCardManager {
     }
 
     public void markUndiscovered(Card card) {
-        if (!checkUndiscovered(card))
+        if (!checkUndiscovered(card)) {
             undiscoveredCard.add(card);
+        }
     }
 
-    public void markDiscovered(Card card) {
-        if (checkUndiscovered(card))
-            undiscoveredCard.remove(undiscoveredCard.indexOf(card));
+    public Boolean markDiscovered(Card card) {
+        if (checkUndiscovered(card)) {
+            undiscoveredCard.remove(card);
+            return true;
+        }
+        return false;
+
     }
 }

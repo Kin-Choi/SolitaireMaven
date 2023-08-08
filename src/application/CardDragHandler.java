@@ -19,7 +19,7 @@ public class CardDragHandler implements EventHandler<MouseEvent> {
 
     // Instance variables
     private Card card;              // Reference to the card being dragged
-    private ImageView imageView;    // Reference to the ImageView representing the card
+    private final ImageView imageView;    // Reference to the ImageView representing the card
 
     
     // Constructor

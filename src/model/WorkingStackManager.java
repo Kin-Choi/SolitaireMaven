@@ -1,8 +1,6 @@
 package model;
 
 import java.util.Stack;
-
-import application.ScoreView;
 import cards.Card;
 import cards.Deck;
 import cards.Rank;
@@ -46,13 +44,8 @@ public class WorkingStackManager {
         }
         else{
             // Check if the card's suit and rank meet the conditions for adding to the working stack
-            if ((card.getSuit().ordinal() + workingStacks[index.ordinal()].peek().getSuit().ordinal()) % 2 != 0) {
-                if (card.getRank().ordinal() == workingStacks[index.ordinal()].peek().getRank().ordinal() - 1) {
-                    return true;
-                }
-            }
+            return ((card.getSuit().ordinal() + workingStacks[index.ordinal()].peek().getSuit().ordinal()) % 2 != 0) && (card.getRank().ordinal() == workingStacks[index.ordinal()].peek().getRank().ordinal() - 1);
         }
-        return false;
     }
 
     // Draw a card from the specified working stack
@@ -91,7 +84,8 @@ public class WorkingStackManager {
     public Stack<Card> drawMultiple(Card card, Workingstack index) {
         assert canDraw(index);
         Stack<Card> stack = new Stack<>();
-        while (!workingStacks[index.ordinal()].isEmpty() && card != workingStacks[index.ordinal()].peek()) {
+        while (!workingStacks[index.ordinal()].isEmpty() && card != workingStacks[index.ordinal()].peek())
+        {
             stack.push(workingStacks[index.ordinal()].draw());
         }
         if (!workingStacks[index.ordinal()].isEmpty()) {

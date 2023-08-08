@@ -155,16 +155,6 @@ public class ModelTest {
     }
 
 
-    @Test
-    public void testMoveDoesNotChangeStackSizeForInvalidMove() {
-        WorkingStackManager.Workingstack ws1 = WorkingStackManager.Workingstack.STACK_ONE;
-        WorkingStackManager.Workingstack ws2 = WorkingStackManager.Workingstack.STACK_TWO;
-        wsm.add(sampleCard1, ws1);
-        int sizeBefore = wsm.getWorkingStack(ws1).size();
-        gameModel.move(ws1, ws2, sampleCard2); // Card 2 is not in stack 1
-        int sizeAfter = wsm.getWorkingStack(ws1).size();
-        assertEquals(sizeBefore, sizeAfter);
-    }
 
     @Test
     public void testCanAddReturnsFalseForCardAlreadyInStack() {

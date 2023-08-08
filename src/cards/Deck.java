@@ -5,7 +5,7 @@ import java.util.Stack;
 
 public class Deck {
 
-    private Stack<Card> cards = new Stack<>();   // Stack to store the cards in the deck
+    private final Stack<Card> cards = new Stack<>();   // Stack to store the cards in the deck
 
     public void reset() {
         cards.clear();
@@ -22,11 +22,11 @@ public class Deck {
     }
 
     public boolean isEmpty() {
-        return this.cards.isEmpty();
+        return !this.cards.isEmpty();
     }
 
     public Card draw() {
-        assert !isEmpty();
+        assert isEmpty();
         // Draw a card from the top of the deck (pop operation)
         return this.cards.pop();
     }
@@ -34,6 +34,6 @@ public class Deck {
     public void transferAll(Stack<Card> cards) {
         while(!cards.isEmpty()) {
             this.cards.push(cards.pop());
-        };
+        }
     }
 }

@@ -6,9 +6,9 @@ import model.Location;
 
 public class MultipleCardsMove implements Move {
 
-    private Location source;
-    private Location destination;
-    private Card card;
+    private final Location source;
+    private final Location destination;
+    private final Card card;
     GameModel gameModel;
 
     // Constructor to initialize the MultipleCardsMove with source, destination, card, and GameModel
@@ -21,9 +21,8 @@ public class MultipleCardsMove implements Move {
 
     // Implementation of the move() method from the Move interface
     @Override
-    public boolean move() {
+    public void move() {
         // Call the move() method of the GameModel to perform the move with multiple cards
-        boolean success = gameModel.move(source, destination, card);
-        return success;
+        gameModel.move(source, destination, card);
     }
 }

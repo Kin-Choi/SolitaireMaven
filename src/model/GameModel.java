@@ -1,8 +1,10 @@
 package model;
 
+import application.Rule;
 import application.ScoreView;
 import cards.Card;
 import cards.Deck;
+import cards.Mode;
 import model.SuitStackManager.SuitStack;
 import model.WorkingStackManager.Workingstack;
 import move.DeckMove;
@@ -18,19 +20,27 @@ public class GameModel {
 
     // Singleton instance of the GameModel
     private static final GameModel INSTANCE = new GameModel();
-
-    private Deck deck = new Deck();   // Deck of playing cards
+    private final Deck deck = new Deck();   // Deck of playing cards
     private Stack<Card> waste;       // Waste pile of discarded cards
-    private List<GameModelListener> listenerList = new ArrayList<>();   // List of listeners to the game state
+    private final List<GameModelListener> listenerList = new ArrayList<>();   // List of listeners to the game state
     private WorkingStackManager workingStackManager;   // Manager for working stacks
     private SuitStackManager suitStackManager;         // Manager for suit stacks
     private DiscoveredCardManager discoveredCardManager;
     private boolean hasWon = false;
     private boolean lose = false;
     private boolean requireReset = false;
+    private Mode mode = Mode.NORMAL;
+    private Rule rule = new Rule(mode);
 
+    public Mode getMode() {
+        return this.mode;
+    }
 
-    // Enum representing the different locations in the game model
+    public Rule getRule() {
+        return this.rule;
+    }
+
+      // Enum representing the different locations in the game model
     public enum CardDeck implements Location {
         DECK, DISCARD
     }
@@ -44,17 +54,11 @@ public class GameModel {
         return INSTANCE;
     }
 
+
     // Add a listener to the game model
     public void addListener(GameModelListener listener) {
         listenerList.add(listener);
     }
-
-//    // Notify all listeners that the game state has changed
-//    private void notifyListener() {
-//        for (GameModelListener listener : listenerList) {
-//            listener.gameStateChanged();
-//        }
-//    }
 
     // Notify all listeners that the game state has changed
     private void notifyListener() {
@@ -75,38 +79,36 @@ public class GameModel {
         setLose(false);
         setHasWon(false);
         deck.reset();
-        waste = new Stack<Card>();
+        waste = new Stack<>();
         discoveredCardManager = new DiscoveredCardManager();
         workingStackManager = new WorkingStackManager(deck);
         suitStackManager = new SuitStackManager();
         requireReset = true;
+        ScoreView.score.setScore(rule.getStartScore());
         notifyListener();
         requireReset = false;
     }
 
+    public void changeMode(Mode mode) {
+        this.mode = mode;
+        this.rule = new Rule(mode);
+        reset();
+    }
+
+
     // Discard a card from the deck to the waste pile
     public boolean discard() {
-        if (!this.deck.isEmpty()) {
+        if (this.deck.isEmpty()) {
             Card c = this.deck.draw();
             waste.add(c);
             notifyListener();
             return true;
-        } else deck.transferAll(waste);
-        ScoreView.score.setScore(ScoreView.score.getScore() - 50);
+        }
+        else deck.transferAll(waste);
+        ScoreView.score.setScore(ScoreView.score.getScore()- rule.getResetWaste());
         notifyListener();
         return true;
     }
-
-//    public boolean discard() {
-//        if (!this.deck.isEmpty()) {
-//            Card c = this.deck.draw();
-//            waste.add(c);
-//            notifyListener();
-//            return true;
-//        }
-//        return false;
-//    }
-
 
     // Peek at the top card of the waste pile
     public Card peekWaste() {
@@ -136,7 +138,7 @@ public class GameModel {
         }
 
         if (location.equals((CardDeck.DECK))) {
-            if (!deck.isEmpty()) {
+            if (deck.isEmpty()) {
                 return true;
             }
         }
@@ -178,16 +180,13 @@ public class GameModel {
         }
         for (Location workingStack : Workingstack.values()) {
             if (source != workingStack && canAdd(card,workingStack)) {
-                if(getInstance().getCardMove(card, workingStack).move())
-                return true;
-
+                getInstance().getCardMove(card, workingStack).move();
             }
         }
 
         return false;
     }
     // Move a card from one location to another
-
     public boolean move(Location source, Location destination, Card card) {
         if (canDraw(source) && canAdd(card, destination)) {
             workingStackManager.addMultiple(workingStackManager.drawMultiple(card, (Workingstack) source),
@@ -198,7 +197,6 @@ public class GameModel {
         return false;
     }
 
-
     // Move a card from one location to another without specifying the card
     public boolean move(Location source, Location destination) {
         if (source instanceof Workingstack && destination instanceof SuitStack) {
@@ -206,8 +204,8 @@ public class GameModel {
                 Card card = workingStackManager.draw((Workingstack) source);
                 suitStackManager.add(card);
                 //add 10 scores
-                int score = ScoreView.score.getScore();
-                ScoreView.score.setScore(ScoreView.score.getScore() + 10);
+                ScoreView.score.setScore(ScoreView.score.getScore()+rule.getWorkingStackToSuitStack());
+                System.out.println("working to suit");
                 notifyListener();
                 return true;
             }
@@ -216,7 +214,7 @@ public class GameModel {
         if (source.equals(CardDeck.DISCARD) && destination instanceof SuitStack) {
             if (canDraw(source) && canAdd(waste.peek(), destination)) {
                 suitStackManager.add(waste.pop());
-                ScoreView.score.setScore(ScoreView.score.getScore() + 10);
+                ScoreView.score.setScore(ScoreView.score.getScore()+rule.getWasteToSuitStack());
                 notifyListener();
                 return true;
             }
@@ -224,10 +222,11 @@ public class GameModel {
 
         if (source.equals(CardDeck.DISCARD) && destination instanceof Workingstack) {
             if (canDraw(source) && canAdd(waste.peek(), destination)) {
-                workingStackManager.add(waste.pop(), (Workingstack) destination);
-                ScoreView.score.setScore(ScoreView.score.getScore() + 5);
-                notifyListener();
-                return true;
+            workingStackManager.add(waste.pop(), (Workingstack) destination);
+            ScoreView.score.setScore(ScoreView.score.getScore()+rule.getWasteToWorkingStack());
+            System.out.println("waste to suit");
+            notifyListener();
+            return true;
             }
         }
 
@@ -243,10 +242,10 @@ public class GameModel {
 
         if (source instanceof SuitStack && destination instanceof Workingstack) {
             if (canAdd(suitStackManager.viewSuitStack((SuitStack) source), destination)) {
-                workingStackManager.add(suitStackManager.draw((SuitStack) source), (Workingstack) destination);
-                ScoreView.score.setScore(ScoreView.score.getScore() - 15);
-                notifyListener();
-                return true;
+            workingStackManager.add(suitStackManager.draw((SuitStack)source), (Workingstack) destination);
+            ScoreView.score.setScore(ScoreView.score.getScore()-rule.getSuitStackToWorkingStack());
+            notifyListener();
+            return true;
             }
         }
         return false;
@@ -261,8 +260,8 @@ public class GameModel {
 
         for (Workingstack ws : Workingstack.values()) {
             if (
-                    !workingStackManager.getWorkingStack(ws).isEmpty() &&
-                            workingStackManager.getCards(ws).peek().equals(top)
+                    !workingStackManager.getWorkingStack(ws).isEmpty()&&
+                    workingStackManager.getCards(ws).peek().equals(top)
             ) {
                 return new OneCardMove(ws, destination, getInstance());
             }
@@ -273,11 +272,11 @@ public class GameModel {
             }
         }
 
-        for (SuitStack ss : SuitStack.values()) {
+        for (SuitStack ss : SuitStack.values()){
             Card card = suitStackManager.viewSuitStack(ss);
-            if (!(card == null) &&
-                    card.equals(top)) {
-                return new OneCardMove(ss, destination, getInstance());
+            if (!(card==null) &&
+            card.equals(top)){
+                return new OneCardMove(ss, destination,getInstance());
             }
         }
         return null;
@@ -306,8 +305,11 @@ public class GameModel {
     }
 
     public void markDiscovered(Card card) {
-        discoveredCardManager.markDiscovered(card);
-        ScoreView.score.setScore(ScoreView.score.getScore() + 5);
+        Boolean reveal = discoveredCardManager.markDiscovered(card);
+
+        if (reveal ) {
+            ScoreView.score.setScore(ScoreView.score.getScore()+rule.getTurnOverWorkingStackCard());
+        }
     }
 
     public void setHasWon(boolean hasWon) {
@@ -318,13 +320,9 @@ public class GameModel {
         return hasWon;
     }
 
-    public void setLose(boolean lose) {
-        this.lose = lose;
-    }
+    public void setLose(boolean lose) {this.lose = lose;}
 
-    public boolean lose() {
-        return lose;
-    }
+    public boolean lose() {return lose;}
 
     public boolean isRequireReset() {
         return requireReset;
