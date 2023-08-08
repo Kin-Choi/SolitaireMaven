@@ -11,7 +11,7 @@ import javafx.geometry.Insets;
 
 public class WasteView extends HBox implements GameModelListener {
 
-    private CardDragHandler dragHandler;
+    private final CardDragHandler dragHandler;
 
     public WasteView() {
         // Set padding for the HBox

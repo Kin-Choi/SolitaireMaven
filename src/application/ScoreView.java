@@ -1,5 +1,6 @@
 package application;
 
+import cards.Mode;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -9,13 +10,13 @@ import model.GameModelListener;
 import result.Score;
 
 public class ScoreView extends HBox implements GameModelListener {
-
-    public static Score score = new Score();
     private static final int FONT_SIZE = 20;
+    public static Score score = new Score(Mode.NORMAL);
 
     public ScoreView() {
         // Reset the game model
         GameModel.getInstance().reset();
+        score= new Score(GameModel.getInstance().getMode());
         Text scoreText = new Text("Score:  ");
         scoreText.setFont(Font.font("Arial", FontWeight.BOLD, FONT_SIZE));
         Text scoreLabel = new Text(String.valueOf(score.getScore()));
@@ -32,9 +33,8 @@ public class ScoreView extends HBox implements GameModelListener {
     @Override
     public void gameStateChanged() {
         Text scoreLabel = (Text) getChildren().get(1);
-        Text scoreText = (Text) getChildren().get(0);
         scoreLabel.setText(String.valueOf(score.getScore()));
-        if (score.getScore()<=-50) {
+        if (score.getScore()<=GameModel.getInstance().getRule().getLoseScore()) {
             GameModel.getInstance().setLose(true);
         }
     }

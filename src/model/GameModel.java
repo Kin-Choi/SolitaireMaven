@@ -1,8 +1,10 @@
 package model;
 
+import application.Rule;
 import application.ScoreView;
 import cards.Card;
 import cards.Deck;
+import cards.Mode;
 import model.SuitStackManager.SuitStack;
 import model.WorkingStackManager.Workingstack;
 import move.DeckMove;
@@ -18,17 +20,25 @@ public class GameModel {
 
     // Singleton instance of the GameModel
     private static final GameModel INSTANCE = new GameModel();
-
-    private Deck deck = new Deck();   // Deck of playing cards
+    private final Deck deck = new Deck();   // Deck of playing cards
     private Stack<Card> waste;       // Waste pile of discarded cards
-    private List<GameModelListener> listenerList = new ArrayList<>();   // List of listeners to the game state
+    private final List<GameModelListener> listenerList = new ArrayList<>();   // List of listeners to the game state
     private WorkingStackManager workingStackManager;   // Manager for working stacks
     private SuitStackManager suitStackManager;         // Manager for suit stacks
     private DiscoveredCardManager discoveredCardManager;
     private boolean hasWon = false;
     private boolean lose = false;
     private boolean requireReset = false;
+    private Mode mode = Mode.NORMAL;
+    private Rule rule = new Rule(mode);
 
+    public Mode getMode() {
+        return this.mode;
+    }
+
+    public Rule getRule() {
+        return this.rule;
+    }
 
       // Enum representing the different locations in the game model
     public enum CardDeck implements Location {
@@ -44,17 +54,11 @@ public class GameModel {
         return INSTANCE;
     }
 
+
     // Add a listener to the game model
     public void addListener(GameModelListener listener) {
         listenerList.add(listener);
     }
-
-//    // Notify all listeners that the game state has changed
-//    private void notifyListener() {
-//        for (GameModelListener listener : listenerList) {
-//            listener.gameStateChanged();
-//        }
-//    }
 
     // Notify all listeners that the game state has changed
     private void notifyListener() {
@@ -75,39 +79,36 @@ public class GameModel {
         setLose(false);
         setHasWon(false);
         deck.reset();
-        waste = new Stack<Card>();
+        waste = new Stack<>();
         discoveredCardManager = new DiscoveredCardManager();
         workingStackManager = new WorkingStackManager(deck);
         suitStackManager = new SuitStackManager();
         requireReset = true;
+        ScoreView.score.setScore(rule.getStartScore());
         notifyListener();
         requireReset = false;
     }
 
+    public void changeMode(Mode mode) {
+        this.mode = mode;
+        this.rule = new Rule(mode);
+        reset();
+    }
+
+
     // Discard a card from the deck to the waste pile
     public boolean discard() {
-        if (!this.deck.isEmpty()) {
+        if (this.deck.isEmpty()) {
             Card c = this.deck.draw();
             waste.add(c);
             notifyListener();
             return true;
         }
         else deck.transferAll(waste);
-        ScoreView.score.setScore(ScoreView.score.getScore()-50);
+        ScoreView.score.setScore(ScoreView.score.getScore()- rule.getResetWaste());
         notifyListener();
         return true;
     }
-
-//    public boolean discard() {
-//        if (!this.deck.isEmpty()) {
-//            Card c = this.deck.draw();
-//            waste.add(c);
-//            notifyListener();
-//            return true;
-//        }
-//        return false;
-//    }
-
 
     // Peek at the top card of the waste pile
     public Card peekWaste() {
@@ -137,7 +138,7 @@ public class GameModel {
         }
 
         if (location.equals((CardDeck.DECK))) {
-            if (!deck.isEmpty()) {
+            if (deck.isEmpty()) {
                 return true;
             }
         }
@@ -175,8 +176,8 @@ public class GameModel {
                 Card card = workingStackManager.draw((Workingstack) source);
                 suitStackManager.add(card);
                 //add 10 scores
-                int score = ScoreView.score.getScore();
-                ScoreView.score.setScore(ScoreView.score.getScore()+10);
+                ScoreView.score.setScore(ScoreView.score.getScore()+rule.getWorkingStackToSuitStack());
+                System.out.println("working to suit");
                 notifyListener();
                 return true;
             }
@@ -185,7 +186,7 @@ public class GameModel {
         if (source.equals(CardDeck.DISCARD) && destination instanceof SuitStack) {
             if (canDraw(source) && canAdd(waste.peek(), destination)) {
                 suitStackManager.add(waste.pop());
-                ScoreView.score.setScore(ScoreView.score.getScore()+10);
+                ScoreView.score.setScore(ScoreView.score.getScore()+rule.getWasteToSuitStack());
                 notifyListener();
                 return true;
             }
@@ -193,7 +194,8 @@ public class GameModel {
 
         if (source.equals(CardDeck.DISCARD) && destination instanceof Workingstack) {
             workingStackManager.add(waste.pop(), (Workingstack) destination);
-            ScoreView.score.setScore(ScoreView.score.getScore()+5);
+            ScoreView.score.setScore(ScoreView.score.getScore()+rule.getWasteToWorkingStack());
+            System.out.println("waste to suit");
             notifyListener();
             return true;
         }
@@ -208,7 +210,7 @@ public class GameModel {
 
         if (source instanceof SuitStack && destination instanceof Workingstack) {
             workingStackManager.add(suitStackManager.draw((SuitStack)source), (Workingstack) destination);
-            ScoreView.score.setScore(ScoreView.score.getScore()-15);
+            ScoreView.score.setScore(ScoreView.score.getScore()-rule.getSuitStackToWorkingStack());
             notifyListener();
             return true;
         }
@@ -269,8 +271,11 @@ public class GameModel {
     }
 
     public void markDiscovered(Card card) {
-        discoveredCardManager.markDiscovered(card);
-        ScoreView.score.setScore(ScoreView.score.getScore()+5);
+        Boolean reveal = discoveredCardManager.markDiscovered(card);
+
+        if (reveal ) {
+            ScoreView.score.setScore(ScoreView.score.getScore()+rule.getTurnOverWorkingStackCard());
+        }
     }
 
     public void setHasWon(boolean hasWon) {
@@ -289,15 +294,4 @@ public class GameModel {
         return requireReset;
     }
 
-    public WorkingStackManager getWorkingStackManager() {
-        return workingStackManager;
-    }
-
-    public SuitStackManager getSuitStackManager() {
-        return suitStackManager;
-    }
-
-    public DiscoveredCardManager getDiscoveredCardManager() {
-        return discoveredCardManager;
-    }
 }

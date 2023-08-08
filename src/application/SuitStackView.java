@@ -19,8 +19,8 @@ public class SuitStackView extends StackPane implements GameModelListener {
     private static final int PADDING = 5;
     private static final String BORDER_STYLE = "-fx-border-color : lightgray;" + "-fx-border-width:1;" + "-fx-border-radius: 5.0;";
 
-    private SuitStack index;          // The suit stack index
-    private CardDragHandler dragHandler;  // Drag handler for card dragging
+    private final SuitStack index;          // The suit stack index
+    private final CardDragHandler dragHandler;  // Drag handler for card dragging
 
     public SuitStackView(SuitStack index) {
         this.index = index;
@@ -45,28 +45,22 @@ public class SuitStackView extends StackPane implements GameModelListener {
     }
 
     private EventHandler<DragEvent> createOnDragOverHandler() {
-        return new EventHandler<DragEvent>() {
-            @Override
-            public void handle(DragEvent event) {
-                event.acceptTransferModes(TransferMode.MOVE);
-                event.consume();
-            }
+        return event -> {
+            event.acceptTransferModes(TransferMode.MOVE);
+            event.consume();
         };
     }
 
     private EventHandler<DragEvent> createOnDragDroppedHandler() {
-        return new EventHandler<DragEvent>() {
-            @Override
-            public void handle(DragEvent event) {
-                Dragboard db = event.getDragboard();
-                boolean success = false;
-                if (db.hasString()) {
-                    GameModel.getInstance().getCardMove(Card.get(db.getString()), index).move();
-                    success = true;
-                }
-                event.setDropCompleted(success);
-                event.consume();
+        return event -> {
+            Dragboard db = event.getDragboard();
+            boolean success = false;
+            if (db.hasString()) {
+                GameModel.getInstance().getCardMove(Card.get(db.getString()), index).move();
+                success = true;
             }
+            event.setDropCompleted(success);
+            event.consume();
         };
     }
 

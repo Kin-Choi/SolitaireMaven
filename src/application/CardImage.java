@@ -2,6 +2,7 @@ package application;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import cards.Card;
 import javafx.scene.image.Image;
@@ -9,7 +10,7 @@ import javafx.scene.image.Image;
 public class CardImage {
 
     // A map to store card images using their code as the key
-    private static Map<String, Image> cards = new HashMap<>();
+    private static final Map<String, Image> cards = new HashMap<>();
 
     // Location and suffix for card image files
     private static final String IMAGE_LOCATION = "Images/";
@@ -37,7 +38,7 @@ public class CardImage {
 
         // If the image is not in the map, load it from the file and add it to the map
         if (image == null) {
-            image = new Image(CardImage.class.getClassLoader().getResourceAsStream(IMAGE_LOCATION + code + IMAGE_SUFFIX),70,100,true,false);
+            image = new Image(Objects.requireNonNull(CardImage.class.getClassLoader().getResourceAsStream(IMAGE_LOCATION + code + IMAGE_SUFFIX)),70,100,true,false);
             cards.put(code, image);
         }
 

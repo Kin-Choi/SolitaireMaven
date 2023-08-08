@@ -5,8 +5,8 @@ import model.Location;
 
 public class OneCardMove implements Move {
 
-    private Location source;
-    private Location destination;
+    private final Location source;
+    private final Location destination;
     GameModel gameModel;
 
     // Constructor to initialize the OneCardMove with source, destination, and GameModel
@@ -18,9 +18,8 @@ public class OneCardMove implements Move {
 
     // Implementation of the move() method from the Move interface
     @Override
-    public boolean move() {
+    public void move() {
         // Call the move() method of the GameModel to perform the move with one card
-        boolean success = gameModel.move(source, destination);
-        return success;
+        gameModel.move(source, destination);
     }
 }

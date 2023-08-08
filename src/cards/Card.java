@@ -3,7 +3,7 @@ package cards;
 public class Card {
 
     // Two-dimensional array to store Card objects for each combination of Suit and Rank
-    private static Card[][] cards = new Card[Suit.values().length][Rank.values().length];
+    private static final Card[][] cards = new Card[Suit.values().length][Rank.values().length];
 
     private final Rank rank;   // The rank of the card
     private final Suit suit;   // The suit of the card

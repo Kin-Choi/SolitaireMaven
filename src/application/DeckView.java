@@ -8,8 +8,6 @@ import model.GameModel;
 import model.GameModel.CardDeck;
 import model.GameModelListener;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
-import javafx.event.EventHandler;
 import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -36,25 +34,17 @@ public class DeckView extends HBox implements GameModelListener {
         button.setCursor(Cursor.HAND);
 
         // Event handler for mouse press on the button
-        button.setOnMousePressed(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                ((Button) event.getSource()).setStyle(BUTTON_STYLE_MOUSEDOWN);
-            }
-        });
+        button.setOnMousePressed(event -> ((Button) event.getSource()).setStyle(BUTTON_STYLE_MOUSEDOWN));
 
         // Event handler for mouse release on the button
-        button.setOnMouseReleased(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                ((Button) event.getSource()).setStyle(BUTTON_STYLE_NORMAL);
-                if (!GameModel.getInstance().canDraw(CardDeck.DECK)) {
+        button.setOnMouseReleased(event -> {
+            ((Button) event.getSource()).setStyle(BUTTON_STYLE_NORMAL);
+            if (!GameModel.getInstance().canDraw(CardDeck.DECK)) {
 //                    GameModel.getInstance().reset();
-                    GameModel.getInstance().getDeckMove().move();
+                GameModel.getInstance().getDeckMove().move();
 
-                } else {
-                    GameModel.getInstance().getDeckMove().move();
-                }
+            } else {
+                GameModel.getInstance().getDeckMove().move();
             }
         });
 

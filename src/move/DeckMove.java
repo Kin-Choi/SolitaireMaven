@@ -12,8 +12,8 @@ public class DeckMove implements Move {
 
     // Implementation of the move() method from the Move interface
     @Override
-    public boolean move() {
+    public void move() {
         // Call the discard() method of the GameModel to perform the deck move
-        return gameModel.discard();
+        gameModel.discard();
     }
 }
